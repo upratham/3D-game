@@ -16,24 +16,28 @@
 
         <div id="controlsGrid">
           <div class="ctrl-row">
-            <div class="ctrl-keys">
-              <kbd>↑</kbd><kbd>↓</kbd>
-            </div>
-            <span>Move Forward / Backward</span>
+            <div class="ctrl-keys"><kbd>Mouse</kbd></div>
+            <span>Aim / Look</span>
           </div>
           <div class="ctrl-row">
-            <div class="ctrl-keys">
-              <kbd>←</kbd><kbd>→</kbd>
-            </div>
-            <span>Turn Left / Right</span>
+            <div class="ctrl-keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+            <span>Move &amp; Strafe</span>
           </div>
           <div class="ctrl-row">
-            <div class="ctrl-keys"><kbd>Space</kbd></div>
+            <div class="ctrl-keys"><kbd>LMB</kbd></div>
             <span>Shoot</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="ctrl-keys"><kbd>RMB</kbd></div>
+            <span>Zoom (ADS)</span>
           </div>
           <div class="ctrl-row">
             <div class="ctrl-keys"><kbd>R</kbd></div>
             <span>Reload</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="ctrl-keys"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></div>
+            <span>Move / Turn (alt)</span>
           </div>
         </div>
 
@@ -60,6 +64,9 @@
 
     <!-- ── Damage flash ──────────────────────────────────────── -->
     <div id="damageOverlay"></div>
+
+    <!-- ── Scope overlay (right-click zoom) ────────────────── -->
+    <div id="scopeOverlay"></div>
 
     <!-- ── Crosshair ────────────────────────────────────────── -->
     <div id="crosshair" aria-hidden="true"></div>

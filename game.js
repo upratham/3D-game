@@ -1,10 +1,6 @@
-// ── Show/hide helpers (bypasses all CSS specificity issues) ──────────────────
-function show(el, displayType) {
-  el.style.display = displayType || 'flex';
-}
-function hide(el) {
-  el.style.display = 'none';
-}
+// ── Show/hide helpers ─────────────────────────────────────────────────────────
+function show(el, displayType) { el.style.display = displayType || 'flex'; }
+function hide(el) { el.style.display = 'none'; }
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 var startScreen   = document.getElementById('startScreen');
@@ -16,6 +12,7 @@ var endStats      = document.getElementById('endStats');
 var playAgainBtn  = document.getElementById('playAgainBtn');
 var hudEl         = document.getElementById('hud');
 var dmgOverlay    = document.getElementById('damageOverlay');
+var scopeOverlay  = document.getElementById('scopeOverlay');
 var hudHP         = document.getElementById('playerHealth');
 var hudHPBar      = document.getElementById('healthBar');
 var hudWave       = document.getElementById('waveNum');
@@ -25,35 +22,31 @@ var messageEl     = document.getElementById('message');
 var waveAnnounce  = document.getElementById('waveAnnounce');
 var waveAnnounceT = document.getElementById('waveAnnounceText');
 
-// ── Apply initial visibility (do this before any THREE code) ─────────────────
+// ── Apply initial visibility ───────────────────────────────────────────────────
 hide(endScreen);
 hide(hudEl);
 hide(waveAnnounce);
 show(startScreen, 'flex');
 
-// ── Attach button listeners immediately (before any THREE code) ──────────────
+// ── THREE globals ──────────────────────────────────────────────────────────────
 var threeReady = false;
 var renderer, scene, camera, clock;
 var obstacles = [];
 var pBullets = [], eBullets = [], enemies = [];
 var flashMap = new Map();
 
+// ── Button listeners ───────────────────────────────────────────────────────────
 startBtn.addEventListener('click', function () {
   if (!checkTHREE()) return;
-  if (!threeReady) {
-    initThree();
-    threeReady = true;
-    animate();
-  }
+  if (!threeReady) { initThree(); threeReady = true; animate(); }
   startGame();
 });
-
 playAgainBtn.addEventListener('click', function () {
   hide(endScreen);
   startGame();
 });
 
-// ── THREE.js check ────────────────────────────────────────────────────────────
+// ── THREE.js check ─────────────────────────────────────────────────────────────
 function checkTHREE() {
   if (typeof THREE === 'undefined') {
     startBtn.textContent = 'ERROR: Three.js failed to load — check internet';
@@ -63,10 +56,9 @@ function checkTHREE() {
   return true;
 }
 
-// ── THREE initialisation (runs once on first START click) ────────────────────
+// ── THREE initialisation ───────────────────────────────────────────────────────
 function initThree() {
   var canvas = document.getElementById('gameCanvas');
-
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -80,7 +72,6 @@ function initThree() {
   camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 200);
   clock  = new THREE.Clock();
 
-  // Lights
   scene.add(new THREE.AmbientLight(0x223355, 0.8));
   scene.add(new THREE.HemisphereLight(0x88aaff, 0x334422, 0.7));
 
@@ -158,12 +149,12 @@ function initThree() {
   });
 }
 
-// ── Enemy definitions ─────────────────────────────────────────────────────────
+// ── Enemy definitions (reduced difficulty) ─────────────────────────────────────
 var ETYPES = [
-  { name: 'SOLDIER', color: 0xcc2222, hp: 60,  spd: 4.2, rate: 0.65, dmg: 10, bspd: 18, pts: 100 },
-  { name: 'TANK',    color: 0xcc6600, hp: 130, spd: 2.6, rate: 0.50, dmg: 22, bspd: 15, pts: 250 },
-  { name: 'RUNNER',  color: 0xaa00cc, hp: 30,  spd: 7.2, rate: 1.10, dmg:  7, bspd: 22, pts: 150 },
-  { name: 'SNIPER',  color: 0x1166cc, hp: 50,  spd: 3.0, rate: 0.28, dmg: 30, bspd: 30, pts: 200 },
+  { name: 'SOLDIER', color: 0xcc2222, hp: 35,  spd: 2.0, rate: 1.10, dmg:  5, bspd: 11, pts: 100 },
+  { name: 'TANK',    color: 0xcc6600, hp: 70,  spd: 1.2, rate: 1.00, dmg: 10, bspd:  9, pts: 250 },
+  { name: 'RUNNER',  color: 0xaa00cc, hp: 18,  spd: 3.8, rate: 1.80, dmg:  4, bspd: 13, pts: 150 },
+  { name: 'SNIPER',  color: 0x1166cc, hp: 28,  spd: 1.6, rate: 0.60, dmg: 14, bspd: 17, pts: 200 },
 ];
 
 function buildEnemyGroup(typeIdx) {
@@ -197,7 +188,6 @@ function buildEnemyGroup(typeIdx) {
   gun.position.set(0.3, 0.85, 0.48);
   grp.add(gun);
 
-  // HP bar
   var hpCanvas = document.createElement('canvas');
   hpCanvas.width = 64; hpCanvas.height = 8;
   var hpTex = new THREE.CanvasTexture(hpCanvas);
@@ -229,7 +219,7 @@ function drawHpBar(enemy) {
   bar.userData.hpTex.needsUpdate = true;
 }
 
-// ── Bullet geometry (created lazily after THREE init) ─────────────────────────
+// ── Bullet geometry ────────────────────────────────────────────────────────────
 var bGeo, pBulMat, eBulMat;
 function getBulletAssets() {
   if (!bGeo) {
@@ -239,28 +229,36 @@ function getBulletAssets() {
   }
 }
 
-// ── Game state ────────────────────────────────────────────────────────────────
+// ── Game state ─────────────────────────────────────────────────────────────────
 var MAX_AMMO    = 12;
 var RELOAD_TIME = 1.8;
 var ARENA_R     = 22;
+var MAX_HP      = 600;
 
-var playerPos  = null;  // initialised in startGame after THREE ready
-var playerYaw  = Math.PI;
-var playerHP   = 100;
+var playerPos    = null;
+var playerYaw    = Math.PI;
+var playerPitch  = 0;
+var playerHP     = MAX_HP;
 var playerFireCD = 0;
-var ammo       = MAX_AMMO;
-var reloading  = false;
-var reloadTimer = 0;
-var score      = 0;
-var wave       = 0;
-var waveActive = false;
-var gameState  = 'menu'; // 'menu' | 'playing' | 'ended'
-var damageFlash = 0;
+var ammo         = MAX_AMMO;
+var reloading    = false;
+var reloadTimer  = 0;
+var score        = 0;
+var wave         = 0;
+var waveActive   = false;
+var gameState    = 'menu';
+var damageFlash  = 0;
+var isZooming    = false;
+var currentFov   = 72;
+var smoothFwd    = 0, smoothRight = 0;
+var pointerLocked = false;
 
 var keys = {
   ArrowUp: false, ArrowDown: false,
   ArrowLeft: false, ArrowRight: false,
   Space: false, KeyR: false,
+  KeyW: false, KeyS: false, KeyA: false, KeyD: false,
+  _mouseShoot: false,
 };
 
 window.addEventListener('keydown', function (e) {
@@ -273,9 +271,50 @@ window.addEventListener('keyup', function (e) {
   if (e.code in keys) keys[e.code] = false;
 });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Pointer lock + mouse look/zoom ─────────────────────────────────────────────
+(function setupMouse() {
+  var canvas = document.getElementById('gameCanvas');
+
+  canvas.addEventListener('click', function () {
+    if (gameState === 'playing') canvas.requestPointerLock();
+  });
+
+  document.addEventListener('pointerlockchange', function () {
+    pointerLocked = document.pointerLockElement === canvas;
+    if (!pointerLocked && gameState === 'playing') {
+      messageEl.textContent = 'Click to re-capture mouse';
+    }
+  });
+
+  document.addEventListener('mousemove', function (e) {
+    if (!pointerLocked || gameState !== 'playing') return;
+    playerYaw  -= e.movementX * 0.002;
+    playerPitch = Math.max(-1.3, Math.min(1.3, playerPitch - e.movementY * 0.002));
+  });
+
+  document.addEventListener('mousedown', function (e) {
+    if (gameState !== 'playing') return;
+    if (e.button === 0) keys._mouseShoot = true;
+    if (e.button === 2) isZooming = true;
+  });
+
+  document.addEventListener('mouseup', function (e) {
+    if (e.button === 0) keys._mouseShoot = false;
+    if (e.button === 2) isZooming = false;
+  });
+
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+})();
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
 function fwd(yaw) {
   return new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+}
+
+function rightVec(yaw) {
+  return new THREE.Vector3(-Math.cos(yaw), 0, Math.sin(yaw));
 }
 
 function clampArena(pos, pad) {
@@ -310,13 +349,13 @@ function spawnBullet(origin, dir, speed, life, list, mat) {
   list.push({ mesh: mesh, dir: dir.clone().normalize(), speed: speed, life: life });
 }
 
-// ── HUD ───────────────────────────────────────────────────────────────────────
+// ── HUD ────────────────────────────────────────────────────────────────────────
 function updateHUD() {
   hudHP.textContent    = Math.max(0, Math.round(playerHP));
   hudWave.textContent  = wave;
   hudScore.textContent = score;
 
-  var pct = Math.max(0, playerHP) / 250;
+  var pct = Math.max(0, playerHP) / MAX_HP;
   hudHPBar.style.width = (pct * 100) + '%';
   hudHPBar.style.background =
     pct > 0.5  ? 'linear-gradient(90deg,#22cc55,#88ff44)' :
@@ -333,7 +372,7 @@ function updateHUD() {
   }
 }
 
-// ── Wave banner ───────────────────────────────────────────────────────────────
+// ── Wave banner ────────────────────────────────────────────────────────────────
 function showWaveBanner(text, duration) {
   show(waveAnnounce, 'flex');
   waveAnnounceT.textContent = text;
@@ -344,7 +383,7 @@ function showWaveBanner(text, duration) {
   }, duration || 1800);
 }
 
-// ── Spawn wave ────────────────────────────────────────────────────────────────
+// ── Spawn wave ─────────────────────────────────────────────────────────────────
 function spawnWave() {
   wave++;
   waveActive = true;
@@ -352,7 +391,7 @@ function spawnWave() {
   enemies = [];
   flashMap.clear();
 
-  var count   = 2 + wave + Math.floor(wave / 3);
+  var count   = 2 + Math.ceil(wave * 0.6);
   var maxType = Math.min(ETYPES.length - 1, Math.floor((wave - 1) / 2));
 
   for (var i = 0; i < count; i++) {
@@ -391,13 +430,14 @@ function spawnWave() {
   updateHUD();
 }
 
-// ── Start / restart ───────────────────────────────────────────────────────────
+// ── Start / restart ────────────────────────────────────────────────────────────
 function startGame() {
   if (!threeReady) return;
 
   playerPos    = new THREE.Vector3(0, 1.6, 16);
   playerYaw    = Math.PI;
-  playerHP     = 250;
+  playerPitch  = 0;
+  playerHP     = MAX_HP;
   playerFireCD = 0;
   ammo         = MAX_AMMO;
   reloading    = false;
@@ -407,7 +447,12 @@ function startGame() {
   waveActive   = false;
   gameState    = 'playing';
   damageFlash  = 0;
+  isZooming    = false;
+  currentFov   = 72;
+  smoothFwd    = 0;
+  smoothRight  = 0;
   dmgOverlay.style.opacity = 0;
+  if (scopeOverlay) scopeOverlay.style.opacity = '0';
 
   pBullets.forEach(function (b) { scene.remove(b.mesh); });
   eBullets.forEach(function (b) { scene.remove(b.mesh); });
@@ -423,26 +468,26 @@ function startGame() {
   show(hudEl, 'block');
   updateHUD();
   spawnWave();
+
+  // Grab mouse
+  document.getElementById('gameCanvas').requestPointerLock();
 }
 
-// ── End game ──────────────────────────────────────────────────────────────────
+// ── End game ───────────────────────────────────────────────────────────────────
 function endGame(victory) {
   gameState = 'ended';
+  isZooming = false;
+  if (scopeOverlay) scopeOverlay.style.opacity = '0';
+  document.exitPointerLock();
 
   endTitle.textContent = victory ? 'VICTORY!' : 'DEFEATED';
   endTitle.className   = victory ? 'victory'  : 'defeat';
   endSub.textContent   = victory ? 'All enemies eliminated' : 'You were taken down on wave ' + wave;
 
-  var kills = 0;
-  for (var i = 0; i < enemies.length; i++) {
-    if (!enemies[i].alive) kills++;
-  }
-
   endStats.innerHTML =
     '<div class="stat-row"><span>Wave Reached</span><span class="stat-val">' + wave + '</span></div>' +
     '<div class="stat-row"><span>Final Score</span><span class="stat-val">' + score + '</span></div>';
 
-  // Clear any lingering damage flash so it doesn't cover the end screen
   damageFlash = 0;
   dmgOverlay.style.opacity = 0;
 
@@ -450,16 +495,29 @@ function endGame(victory) {
   show(endScreen, 'flex');
 }
 
-// ── Player update ─────────────────────────────────────────────────────────────
+// ── Player update ──────────────────────────────────────────────────────────────
 function updatePlayer(dt) {
-  if (keys.ArrowLeft)  playerYaw += 2.4 * dt;
-  if (keys.ArrowRight) playerYaw -= 2.4 * dt;
+  // Arrow keys still turn for keyboard-only players
+  if (keys.ArrowLeft)  playerYaw += 2.2 * dt;
+  if (keys.ArrowRight) playerYaw -= 2.2 * dt;
 
-  var forward = fwd(playerYaw);
-  var dx = (keys.ArrowUp ? 1 : 0) - (keys.ArrowDown ? 1 : 0);
-  if (dx !== 0) {
-    var move = forward.clone().multiplyScalar(dx * 8 * dt);
-    var next = playerPos.clone().add(move);
+  // Smooth WASD + arrow movement
+  var inputFwd   = ((keys.KeyW || keys.ArrowUp)    ? 1 : 0) - ((keys.KeyS || keys.ArrowDown)  ? 1 : 0);
+  var inputRight = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+
+  var accel = 14;
+  smoothFwd   += (inputFwd   - smoothFwd)   * Math.min(1, accel * dt);
+  smoothRight += (inputRight - smoothRight) * Math.min(1, accel * dt);
+
+  var fwdDir   = fwd(playerYaw);
+  var rDir     = rightVec(playerYaw);
+  var moveVec  = fwdDir.clone().multiplyScalar(smoothFwd).addScaledVector(rDir, smoothRight);
+  var moveLen  = moveVec.length();
+
+  if (moveLen > 0.05) {
+    if (moveLen > 1) moveVec.normalize();
+    var movement = moveVec.clone().multiplyScalar(8 * dt);
+    var next = playerPos.clone().add(movement);
     clampArena(next, 1.2);
     if (!hitsObs(next, 0.65)) playerPos.copy(next);
   }
@@ -479,7 +537,7 @@ function updatePlayer(dt) {
   }
 
   playerFireCD -= dt;
-  if (keys.Space && playerFireCD <= 0 && ammo > 0) {
+  if ((keys.Space || keys._mouseShoot) && playerFireCD <= 0 && ammo > 0) {
     var dir    = fwd(playerYaw);
     var muzzle = playerPos.clone().add(dir.clone().multiplyScalar(0.7));
     spawnBullet(muzzle, dir, 28, 2.5, pBullets, pBulMat);
@@ -490,7 +548,7 @@ function updatePlayer(dt) {
   }
 }
 
-// ── Enemy update ──────────────────────────────────────────────────────────────
+// ── Enemy update ───────────────────────────────────────────────────────────────
 function updateEnemies(dt, elapsed) {
   for (var i = 0; i < enemies.length; i++) {
     var e = enemies[i];
@@ -519,7 +577,6 @@ function updateEnemies(dt, elapsed) {
     e.mesh.position.copy(e.pos);
     e.mesh.lookAt(playerPos.x, e.pos.y, playerPos.z);
 
-    // Billboard HP bar
     for (var c = 0; c < e.mesh.children.length; c++) {
       if (e.mesh.children[c].userData.isHpBar) {
         e.mesh.children[c].lookAt(camera.position);
@@ -527,7 +584,6 @@ function updateEnemies(dt, elapsed) {
       }
     }
 
-    // Shoot
     e.fireCD -= dt;
     if (e.fireCD <= 0 && hasLOS(e.pos, playerPos)) {
       var spread = e.typeIdx === 3 ? 0.015 : 0.09;
@@ -539,7 +595,6 @@ function updateEnemies(dt, elapsed) {
       e.fireCD = e.type.rate + Math.random() * 0.25;
     }
 
-    // Flash decay
     if (flashMap.has(e)) {
       var ft = flashMap.get(e) - dt;
       if (ft <= 0) {
@@ -556,7 +611,7 @@ function updateEnemies(dt, elapsed) {
   }
 }
 
-// ── Bullet update ─────────────────────────────────────────────────────────────
+// ── Bullet update ──────────────────────────────────────────────────────────────
 function removeBullet(list, i) {
   scene.remove(list[i].mesh);
   list.splice(i, 1);
@@ -618,8 +673,8 @@ function updateBullets(dt) {
         var d = enemies[j].pos.distanceTo(b.mesh.position);
         if (d < best) { best = d; dmg = enemies[j].type.dmg; }
       }
-      playerHP    -= dmg;
-      damageFlash  = 0.3;
+      playerHP   -= dmg;
+      damageFlash = 0.3;
       updateHUD();
       if (playerHP <= 0) endGame(false);
       removeBullet(eBullets, i);
@@ -627,7 +682,7 @@ function updateBullets(dt) {
   }
 }
 
-// ── Main loop ─────────────────────────────────────────────────────────────────
+// ── Main loop ──────────────────────────────────────────────────────────────────
 function animate() {
   requestAnimationFrame(animate);
   if (!threeReady) return;
@@ -653,11 +708,27 @@ function animate() {
       }, 2400);
     }
 
+    // Camera: position + look with yaw and pitch
+    var lookDir = new THREE.Vector3(
+      Math.cos(playerPitch) * Math.sin(playerYaw),
+      Math.sin(playerPitch),
+      Math.cos(playerPitch) * Math.cos(playerYaw)
+    );
     camera.position.copy(playerPos);
-    camera.lookAt(playerPos.clone().add(fwd(playerYaw)));
+    camera.lookAt(playerPos.clone().add(lookDir));
+
+    // Smooth FOV zoom
+    var targetFov = isZooming ? 38 : 72;
+    if (Math.abs(currentFov - targetFov) > 0.1) {
+      currentFov += (targetFov - currentFov) * Math.min(1, dt * 12);
+      camera.fov = currentFov;
+      camera.updateProjectionMatrix();
+    }
+
+    // Scope overlay
+    if (scopeOverlay) scopeOverlay.style.opacity = isZooming ? '1' : '0';
   }
 
-  // Always fade the damage overlay — even after death so it doesn't stay red
   if (damageFlash > 0) {
     damageFlash = Math.max(0, damageFlash - dt);
     dmgOverlay.style.opacity = Math.min(0.7, damageFlash * 2.5);
