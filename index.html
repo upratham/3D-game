@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arena FPS</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+
+    <!-- ── Start Screen ─────────────────────────────────────── -->
+    <div id="startScreen">
+      <div id="startContent">
+        <div class="start-badge">FIRST PERSON SHOOTER</div>
+        <div id="gameTitle">ARENA<br>FPS</div>
+
+        <div id="controlsGrid">
+          <div class="ctrl-row">
+            <div class="ctrl-keys">
+              <kbd>↑</kbd><kbd>↓</kbd>
+            </div>
+            <span>Move Forward / Backward</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="ctrl-keys">
+              <kbd>←</kbd><kbd>→</kbd>
+            </div>
+            <span>Turn Left / Right</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="ctrl-keys"><kbd>Space</kbd></div>
+            <span>Shoot</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="ctrl-keys"><kbd>R</kbd></div>
+            <span>Reload</span>
+          </div>
+        </div>
+
+        <div id="enemyLegend">
+          <div class="legend-item"><span class="dot" style="background:#cc2222"></span>Soldier — balanced</div>
+          <div class="legend-item"><span class="dot" style="background:#cc6600"></span>Tank — slow, high HP</div>
+          <div class="legend-item"><span class="dot" style="background:#aa00cc"></span>Runner — fast, fragile</div>
+          <div class="legend-item"><span class="dot" style="background:#1166aa"></span>Sniper — precise, deadly</div>
+        </div>
+
+        <button id="startBtn">&#9658; &nbsp; START GAME</button>
+      </div>
+    </div>
+
+    <!-- ── End Screen ───────────────────────────────────────── -->
+    <div id="endScreen" style="display:none">
+      <div id="endContent">
+        <div id="endTitle">GAME OVER</div>
+        <div id="endSub"></div>
+        <div id="endStats"></div>
+        <button id="playAgainBtn">&#9658; &nbsp; PLAY AGAIN</button>
+      </div>
+    </div>
+
+    <!-- ── Damage flash ──────────────────────────────────────── -->
+    <div id="damageOverlay"></div>
+
+    <!-- ── Crosshair ────────────────────────────────────────── -->
+    <div id="crosshair" aria-hidden="true"></div>
+
+    <!-- ── HUD ──────────────────────────────────────────────── -->
+    <div id="hud" style="display:none">
+      <div id="hudTitle">ARENA FPS</div>
+
+      <div class="hud-row">
+        <span class="hud-label">HP</span>
+        <div id="healthBarWrap"><div id="healthBar"></div></div>
+        <span id="playerHealth">100</span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">WAVE</span>
+        <span id="waveNum">1</span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">SCORE</span>
+        <span id="score">0</span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">AMMO</span>
+        <span id="ammo">12 / 12</span>
+      </div>
+
+      <div id="message"></div>
+    </div>
+
+    <!-- ── Wave announcement ─────────────────────────────────── -->
+    <div id="waveAnnounce" style="display:none">
+      <div id="waveAnnounceText"></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Three.js — local copy (no internet required) -->
+    <script src="./three.min.js"></script>
+    <script src="./game.js"></script>
+  </body>
+</html>

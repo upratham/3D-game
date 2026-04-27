@@ -1,0 +1,302 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Courier New', Courier, monospace;
+  background: #050c18;
+  color: #e0eeff;
+}
+
+#gameCanvas { display: block; width: 100vw; height: 100vh; }
+
+/* ── Damage overlay ─────────────────────────────────────────── */
+#damageOverlay {
+  position: fixed; inset: 0; z-index: 20;
+  background: radial-gradient(ellipse at center, transparent 20%, #cc0000 100%);
+  opacity: 0; pointer-events: none;
+}
+
+/* ── Crosshair ──────────────────────────────────────────────── */
+#crosshair {
+  position: fixed; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15; pointer-events: none;
+  width: 18px; height: 18px;
+}
+#crosshair::before, #crosshair::after {
+  content: ''; position: absolute;
+  background: rgba(255,255,255,0.9);
+  border-radius: 1px;
+}
+#crosshair::before { width: 2px; height: 100%; left: 50%; transform: translateX(-50%); }
+#crosshair::after  { height: 2px; width: 100%; top: 50%;  transform: translateY(-50%); }
+
+/* ── HUD ────────────────────────────────────────────────────── */
+#hud {
+  position: fixed; top: 14px; left: 14px; z-index: 10;
+  background: rgba(2, 8, 20, 0.84);
+  border: 1px solid rgba(80, 140, 255, 0.25);
+  border-radius: 10px;
+  padding: 12px 16px 10px;
+  min-width: 210px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 24px rgba(0, 60, 200, 0.18), inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+#hudTitle {
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 4px; color: #55aaff;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px #2277ff;
+}
+
+.hud-row {
+  display: flex; align-items: center; gap: 8px;
+  margin: 5px 0; font-size: 12px;
+}
+.hud-label {
+  color: #607898; font-size: 10px;
+  letter-spacing: 1px; width: 40px;
+}
+#playerHealth, #waveNum, #score, #ammo {
+  min-width: 58px; text-align: right;
+  font-weight: 700; color: #cce0ff; font-size: 13px;
+}
+
+#healthBarWrap {
+  flex: 1; height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px; overflow: hidden;
+}
+#healthBar {
+  height: 100%; width: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #22cc55, #88ff44);
+  transition: width 0.12s, background 0.3s;
+}
+
+#message {
+  margin-top: 9px; font-size: 10px;
+  color: #5578a0; line-height: 1.5;
+  letter-spacing: 0.5px;
+}
+
+/* ── Wave Announce ──────────────────────────────────────────── */
+#waveAnnounce {
+  position: fixed; inset: 0; z-index: 12;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+#waveAnnounceText {
+  font-size: 64px; font-weight: 900;
+  letter-spacing: 8px; color: #ffffff;
+  text-shadow: 0 0 30px #3af, 0 0 70px #08f;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+/* ── START SCREEN ───────────────────────────────────────────── */
+#startScreen {
+  position: fixed; inset: 0; z-index: 100;
+  background: radial-gradient(ellipse at 50% 40%, #061428 0%, #020810 70%);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Animated scan-line effect */
+#startScreen::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 100, 200, 0.03) 2px,
+    rgba(0, 100, 200, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+#startContent {
+  position: relative; z-index: 1;
+  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0;
+  max-width: 520px; width: 90%;
+}
+
+.start-badge {
+  font-size: 10px; letter-spacing: 5px;
+  color: #3a7abf; margin-bottom: 16px;
+  border: 1px solid #1a3a5e;
+  padding: 4px 14px; border-radius: 20px;
+}
+
+#gameTitle {
+  font-size: 80px; font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: 14px;
+  color: #fff;
+  text-shadow:
+    0 0 20px rgba(50,150,255,0.9),
+    0 0 60px rgba(30,100,255,0.5),
+    0 0 120px rgba(20,80,220,0.3);
+  margin-bottom: 36px;
+  animation: titlePulse 3s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% { text-shadow: 0 0 20px rgba(50,150,255,0.9), 0 0 60px rgba(30,100,255,0.5); }
+  50%       { text-shadow: 0 0 30px rgba(80,180,255,1),  0 0 90px rgba(50,130,255,0.7); }
+}
+
+#controlsGrid {
+  background: rgba(5, 15, 30, 0.7);
+  border: 1px solid rgba(60, 120, 200, 0.2);
+  border-radius: 10px;
+  padding: 18px 28px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.ctrl-row {
+  display: flex; align-items: center;
+  gap: 16px; padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 13px; color: #a0bcd8;
+}
+.ctrl-row:last-child { border-bottom: none; }
+
+.ctrl-keys {
+  display: flex; gap: 4px;
+  min-width: 90px; justify-content: flex-start;
+}
+
+kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 26px; padding: 0 8px;
+  background: rgba(20, 60, 120, 0.6);
+  border: 1px solid rgba(80, 140, 220, 0.5);
+  border-radius: 5px;
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  color: #88ccff;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+}
+
+#enemyLegend {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+  background: rgba(5, 15, 30, 0.7);
+  border: 1px solid rgba(60, 120, 200, 0.2);
+  border-radius: 10px;
+  padding: 14px 24px;
+  margin-bottom: 32px;
+  width: 100%;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: #7090b0;
+}
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+#startBtn {
+  padding: 16px 64px;
+  font-family: inherit; font-size: 16px;
+  font-weight: 900; letter-spacing: 3px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1155dd 0%, #2277ff 100%);
+  border: 2px solid rgba(100, 180, 255, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  box-shadow: 0 0 30px rgba(30, 100, 255, 0.4), 0 4px 20px rgba(0,0,0,0.5);
+  animation: btnGlow 2s ease-in-out infinite;
+}
+#startBtn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 0 50px rgba(50, 150, 255, 0.7), 0 6px 24px rgba(0,0,0,0.6);
+  background: linear-gradient(135deg, #1a66ff 0%, #44aaff 100%);
+}
+#startBtn:active { transform: translateY(0) scale(0.98); }
+
+@keyframes btnGlow {
+  0%, 100% { box-shadow: 0 0 30px rgba(30,100,255,0.4), 0 4px 20px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 50px rgba(60,140,255,0.7), 0 4px 20px rgba(0,0,0,0.5); }
+}
+
+/* ── END SCREEN ─────────────────────────────────────────────── */
+#endScreen {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(6px);
+}
+#endScreen[hidden] { display: none; }
+
+#endContent {
+  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0;
+  max-width: 460px; width: 90%;
+  background: rgba(4, 12, 28, 0.95);
+  border: 1px solid rgba(80, 140, 255, 0.3);
+  border-radius: 16px;
+  padding: 48px 40px;
+  box-shadow: 0 0 60px rgba(20, 60, 200, 0.3);
+}
+
+#endTitle {
+  font-size: 56px; font-weight: 900;
+  letter-spacing: 8px;
+  margin-bottom: 10px;
+}
+#endTitle.victory {
+  color: #44ffaa;
+  text-shadow: 0 0 20px #00cc77, 0 0 50px #009955;
+}
+#endTitle.defeat {
+  color: #ff4422;
+  text-shadow: 0 0 20px #cc2200, 0 0 50px #aa1100;
+}
+
+#endSub {
+  font-size: 13px; letter-spacing: 3px;
+  color: #6090b8; margin-bottom: 28px;
+}
+
+#endStats {
+  background: rgba(10, 25, 50, 0.8);
+  border: 1px solid rgba(60,110,200,0.2);
+  border-radius: 8px;
+  padding: 16px 32px;
+  margin-bottom: 32px;
+  width: 100%;
+}
+.stat-row {
+  display: flex; justify-content: space-between;
+  font-size: 14px; padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: #99b8d8;
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-val { font-weight: 700; color: #cce4ff; }
+
+#playAgainBtn {
+  padding: 14px 56px;
+  font-family: inherit; font-size: 15px;
+  font-weight: 900; letter-spacing: 2px;
+  color: #fff;
+  background: linear-gradient(135deg, #1155dd, #2277ff);
+  border: 2px solid rgba(100,180,255,0.4);
+  border-radius: 8px; cursor: pointer;
+  box-shadow: 0 0 30px rgba(30,100,255,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+#playAgainBtn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 0 50px rgba(60,150,255,0.7);
+}
